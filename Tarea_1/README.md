@@ -13,3 +13,5 @@ sudo systemctl enable docker
 sudo apt install docker-compose -y
 
 sudo apt-get install docker-compose-plugin
+
+sudo docker-compose up --build
