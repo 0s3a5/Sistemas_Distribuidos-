@@ -15,3 +15,7 @@ sudo apt install docker-compose -y
 sudo apt-get install docker-compose-plugin
 
 sudo docker-compose up --build
+
+nueva terminal
+
+ sudo docker-compose exec sistema_cache python3 -c "import requests; print(requests.get('http://127.0.0.1:5000/generar_reporte').json())"
