@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  # Base de datos en memoria exigida por el PDF
+  redis-service:
+    image: redis:latest
+    command: redis-server --maxmemory 200mb --maxmemory-policy allkeys-lru
+
+  # Servicio de procesamiento de datos
+  response-gen:
+    build: ./generador_respuestas
+    volumes:
+      - ./metricas:/app/data
+
+  # El intermediario que gestiona la lógica de caché
+  sistema_cache:
+    build: ./sistema_cache
+    volumes:
+      - ./metricas:/app/data 
+    depends_on:
+      - redis-service
+      - response-gen
+
+  # El simulador de empresas de logística
+  traffic-gen:
+    build: ./generador_trafico
+    depends_on:
+      - sistema_cache
