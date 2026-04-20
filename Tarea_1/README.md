@@ -19,3 +19,13 @@ sudo docker-compose up --build
 nueva terminal
 
  sudo docker-compose exec sistema_cache python3 -c "import requests; print(requests.get('http://127.0.0.1:5000/generar_reporte').json())"
+
+para reinciar docker
+
+sudo docker-compose down
+
+sudo docker-compose rm -f
+
+sudo docker-compose up --build
+
+
