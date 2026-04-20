@@ -28,4 +28,8 @@ sudo docker-compose rm -f
 
 sudo docker-compose up --build
 
+para que jale mejor
+
+sudo docker-compose down --volumes --remove-orphans
+
 
