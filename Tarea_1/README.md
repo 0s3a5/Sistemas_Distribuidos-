@@ -4,6 +4,6 @@ Primero se debe de descargar dependencias de dockers
 
 sudo apt-get update
 
-sudo apt install docker.io docker-compose-plugin -y
+sudo apt install docker.io docker-compose -y
 
 sudo apt-get install docker-compose-plugin
