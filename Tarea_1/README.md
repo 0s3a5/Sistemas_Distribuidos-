@@ -6,4 +6,8 @@ sudo apt-get update
 
 sudo apt install docker.io docker-compose -y
 
+sudo systemctl start docker
+
+sudo systemctl enable docker
+
 sudo apt-get install docker-compose-plugin
