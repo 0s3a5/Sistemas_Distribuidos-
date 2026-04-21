@@ -1,0 +1,7 @@
+Metrica,Valor
+Total Consultas,1000
+Hit Rate,0.215
+Throughput (req/s),8.69
+Latencia p50 (ms),28.91
+Latencia p95 (ms),50.85
+Cache Efficiency,-25.1416
