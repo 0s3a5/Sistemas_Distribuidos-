@@ -1,35 +1,15 @@
-Instrucciones para iniciar la tarea numero 1 de sistemas distribuidos
+Tarea 1 de sistemas distribuidos
 
-Primero se debe de descargar dependencias de dockers
+Plataforma de análisis de preguntas y respuestas en Internet
 
-sudo apt-get update
+Hernan Acosta y Oseas Poveda
 
-sudo apt install docker.io docker-compose -y
+En este git esta incluido:
 
-sudo systemctl start docker
+1) Informe, tanto en formato pdf como en formato latex
 
-sudo systemctl enable docker
+2) Codigos con los cuales se trabajo
 
-sudo apt install docker-compose -y
-
-sudo apt-get install docker-compose-plugin
-
-sudo docker-compose up --build
-
-nueva terminal
-
- sudo docker-compose exec sistema_cache python3 -c "import requests; print(requests.get('http://127.0.0.1:5000/generar_reporte').json())"
-
-para reinciar docker
-
-sudo docker-compose down
-
-sudo docker-compose rm -f
-
-sudo docker-compose up --build
-
-para que jale mejor
-
-sudo docker-compose down --volumes --remove-orphans
+3) Instrucciones para replicar nuestro trabajo
 
 
