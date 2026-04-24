@@ -13,7 +13,6 @@ cache = redis.Redis(host='redis-service', port=6379, decode_responses=True)
 METRICS_LOG = '/app/data/log_detalle.csv'
 SUMMARY_REPORT = '/app/data/reporte_final.csv'
 
-# Mantenemos estas listas globales
 tiempos_hit = []
 tiempos_miss = []
 
@@ -53,7 +52,6 @@ def process_request():
 
     latency = (time.time() - start_time) * 1000
     
-    # Registro con flush inmediato para que no se pierda nada
     with open(METRICS_LOG, 'a', newline='') as f:
         writer = csv.writer(f)
         writer.writerow([time.time(), status, latency])
@@ -70,7 +68,6 @@ def generar_reporte():
         return jsonify({"error": "No existe el log detallado"}), 400
 
     data_rows = []
-    # Usamos listas temporales basadas en el archivo por si las globales fallan
     l_hits = []
     l_misses = []
 
@@ -98,12 +95,10 @@ def generar_reporte():
     p50 = np.percentile(all_latencies, 50)
     p95 = np.percentile(all_latencies, 95)
     
-    # Eficiencia usando los datos reales del archivo
     t_c = np.mean(l_hits) if l_hits else 0
     t_d = np.mean(l_misses) if l_misses else 0
     efficiency = (hits_count * t_c - misses_count * t_d) / total
 
-    # ESCRITURA FORZADA DEL REPORTE
     with open(SUMMARY_REPORT, 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(['Metrica', 'Valor'])
@@ -113,7 +108,7 @@ def generar_reporte():
         writer.writerow(['Latencia p50 (ms)', round(p50, 2)])
         writer.writerow(['Latencia p95 (ms)', round(p95, 2)])
         writer.writerow(['Cache Efficiency', round(efficiency, 4)])
-        f.flush() # Forzamos la escritura al disco
+        f.flush() 
 
     return jsonify({"mensaje": f"Reporte exitoso con {total} registros"}), 200
 
