@@ -3,8 +3,6 @@ import numpy as np
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
-
-# Definición de las zonas según el PDF [cite: 95]
 ZONAS_BBOX = {
     "Z1": {"name": "Providencia", "area_km2": 4.5},
     "Z2": {"name": "Las Condes", "area_km2": 6.2},
@@ -19,16 +17,13 @@ def cargar_datos():
     Busca el archivo en la ruta montada por el volumen de Docker.
     """
     try:
-        # Se cargan los campos requeridos [cite: 89]
-        # La ruta '/app/data/' es la ruta INTERNA del contenedor definida en docker-compose
-        df = pd.read_csv('/app/data/buildings.csv') 
+              df = pd.read_csv('/app/data/buildings.csv') 
         print(f"Éxito: {len(df)} edificaciones cargadas en memoria[cite: 91].")
         return df
     except FileNotFoundError:
         print("ERROR: No se encontró '/app/data/buildings.csv'. Revisa el volumen en Docker.")
         return pd.DataFrame()
 
-# El dataset se mantiene global en RAM para consultas rápidas [cite: 45, 90]
 df_edificios = cargar_datos()
 
 @app.route('/query/q1', methods=['POST'])
@@ -67,7 +62,6 @@ def query_q3():
     try:
         subset = df_edificios[(df_edificios['zone_id'] == data['zone_id']) & 
                               (df_edificios['confidence'] >= data.get('confidence_min', 0.0))]
-        # Usa el área precalculada de la zona para la densidad [cite: 132]
         area_km2 = ZONAS_BBOX.get(data['zone_id'], {}).get('area_km2', 1.0)
         density = len(subset) / area_km2
         return jsonify({"density": float(density)}), 200
@@ -101,8 +95,7 @@ def query_q5():
     data = request.json
     try:
         subset = df_edificios[df_edificios['zone_id'] == data['zone_id']]
-        bins = data.get('bins', 5) # Valor por defecto de intervalos [cite: 149, 151]
-
+        bins = data.get('bins', 5)
         counts, edges = np.histogram(subset['confidence'], bins=bins, range=(0, 1))
 
         distribucion = []
@@ -118,5 +111,4 @@ def query_q5():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    # Ejecución en el puerto 5001 para comunicación secuencial [cite: 32]
     app.run(host='0.0.0.0', port=5001)
