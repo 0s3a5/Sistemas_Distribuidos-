@@ -1,6 +1,4 @@
 import pandas as pd
-
-# 1. Definir las zonas exactas de la guía [cite: 95]
 ZONAS = {
     "Z1": {"lat_min": -33.445, "lat_max": -33.420, "lon_min": -70.640, "lon_max": -70.600},
     "Z2": {"lat_min": -33.420, "lat_max": -33.390, "lon_min": -70.600, "lon_max": -70.550},
@@ -11,14 +9,12 @@ ZONAS = {
 
 def filtrar_edificios(input_csv, output_csv):
     print("Cargando dataset original (esto puede tardar)...")
-    # Cargamos solo las columnas necesarias para ahorrar RAM
     chunks = pd.read_csv(input_csv, chunksize=100000)
     
     lista_final = []
 
     for chunk in chunks:
         for z_id, coord in ZONAS.items():
-            # Filtrar edificios que caen en la caja de esta zona [cite: 99]
             mask = (
                 (chunk['latitude'] >= coord['lat_min']) & 
                 (chunk['latitude'] <= coord['lat_max']) & 
@@ -27,7 +23,7 @@ def filtrar_edificios(input_csv, output_csv):
             )
             df_zona = chunk[mask].copy()
             if not df_zona.empty:
-                df_zona['zone_id'] = z_id  # Asignamos el ID para facilitar Q1-Q5 [cite: 91]
+                df_zona['zone_id'] = z_id 
                 lista_final.append(df_zona)
 
     if lista_final:
@@ -39,5 +35,4 @@ def filtrar_edificios(input_csv, output_csv):
         print("Error: No se encontraron edificios en las coordenadas especificadas.")
 
 if __name__ == "__main__":
-    # Cambia 'nombre_del_archivo_que_descargaste.csv' por el real
     filtrar_edificios('967_buildings.csv', 'metricas/buildings.csv')
