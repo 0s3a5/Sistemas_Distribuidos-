@@ -32,7 +32,29 @@ def generar_consulta(modo="uniform"):
     payload["timestamp_creacion"] = time.time() 
     
     return payload
-
+def simular_spike():
+    print("--- INICIANDO EXPERIMENTO DE SPIKE (1500 Consultas) ---")
+    
+    print("Fase 1: Inyectando tráfico normal...")
+    for i in range(500):
+        payload = generar_consulta(modo="zipf")
+        producer.send(TOPICO_PRINCIPAL, value=payload)
+        time.sleep(0.05) 
+        
+   
+    print("Fase 2: ¡SPIKE DETECTADO! Inyectando 500 consultas de golpe...")
+    for i in range(500, 1000):
+        payload = generar_consulta(modo="zipf")
+        producer.send(TOPICO_PRINCIPAL, value=payload)
+       
+    print("Fase 3: Estabilizando. Vuelta al tráfico normal...")
+    for i in range(1000, 1500):
+        payload = generar_consulta(modo="zipf")
+        producer.send(TOPICO_PRINCIPAL, value=payload)
+        time.sleep(0.05)
+        
+    producer.flush()
+    print("--- EXPERIMENTO DE SPIKE FINALIZADO ---")
 def simular_trafico(iteraciones=1000, modo="zipf"):
     print(f"--- Iniciando Simulación de Tráfico Asíncrono: Modo {modo.upper()} ---")
     for i in range(iteraciones):
@@ -64,11 +86,11 @@ if __name__ == "__main__":
             print("[ESPERA] El Broker de Kafka aún no está disponible. Reintentando en 5 segundos...")
             time.sleep(5)
     
-    simular_trafico(iteraciones=1000, modo="uniform")
+   # simular_trafico(iteraciones=1000, modo="uniform")
     
-    print("\nCambiando a modo Zipf en 5 segundos...\n")
-    time.sleep(5)
+    #print("\nCambiando a modo Zipf en 5 segundos...\n")
+    #time.sleep(5)
     
     simular_trafico(iteraciones=100, modo="zipf")
-    
+   simular_spike() 
     print("--- Producción de tráfico finalizada ---")
