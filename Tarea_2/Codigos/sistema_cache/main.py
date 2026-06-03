@@ -10,7 +10,6 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 cache = redis.Redis(host='redis-service', port=6379, decode_responses=True)
 
-# Rutas exigidas para el volumen de Docker [cite: 156]
 METRICS_LOG = '/app/data/log_detalle.csv'
 SUMMARY_REPORT = '/app/data/reporte_final.csv'
 
@@ -19,7 +18,6 @@ def inicializar_log():
     if not os.path.exists(METRICS_LOG):
         with open(METRICS_LOG, 'w', newline='') as f:
             writer = csv.writer(f)
-            # NUEVO ENCABEZADO EXIGIDO POR LA RÚBRICA 
             writer.writerow(['timestamp', 'status', 'latency_ms', 'retry_count', 'is_dlq', 'is_recovered'])
 
 @app.route('/request', methods=['POST'])
@@ -32,7 +30,6 @@ def process_request():
     start_time = time.time()
     cached_res = cache.get(cache_key)
     
-    # Extraemos los datos de control de Kafka que viajan en el JSON [cite: 94]
     retries_actuales = data.get('retry_count', 0)
     is_recovered = 1 if retries_actuales > 0 else 0
 
@@ -44,7 +41,6 @@ def process_request():
             response_data = cached_res
     else:
         status = "MISS"
-        # Llamada interna al generador de respuestas [cite: 44]
         resp = requests.post(f"http://response-gen:5001/query/{q_type}", json=data, timeout=5)
         cache.setex(cache_key, 60, resp.text)
         try:
@@ -54,20 +50,17 @@ def process_request():
 
     latency = (time.time() - start_time) * 1000
     
-    # Guardamos el registro con las nuevas métricas de Kafka 
     with open(METRICS_LOG, 'a', newline='') as f:
         writer = csv.writer(f)
         writer.writerow([time.time(), status, latency, retries_actuales, 0, is_recovered])
 
     return jsonify({"status": status, "latency_ms": latency, "data": response_data}), 200
 
-# NUEVO ENDPOINT: El consumidor llamará aquí si una consulta se va a la DLQ [cite: 59]
 @app.route('/log_dlq', methods=['POST'])
 def log_dlq():
     data = request.json
     with open(METRICS_LOG, 'a', newline='') as f:
         writer = csv.writer(f)
-        # Registra la consulta fallida en la DLQ [cite: 59, 139]
         writer.writerow([time.time(), "DLQ", 0, data.get('retry_count', 0), 1, 0])
     return jsonify({"status": "DLQ_LOGGED"}), 200
 
@@ -95,14 +88,12 @@ def generar_reporte():
     p50 = np.percentile(latencias, 50) if latencias else 0
     p95 = np.percentile(latencias, 95) if latencias else 0
     
-    # Cálculos estrictos según las fórmulas de la rúbrica 
     hit_rate = hits / (hits + misses) if (hits + misses) > 0 else 0
     throughput = (hits + misses) / (float(data_rows[-1]['timestamp']) - float(data_rows[0]['timestamp'])) if total > 1 else 0
     retry_rate = sum(int(r['retry_count']) for r in data_rows) / total
     dlq_rate = dlqs / total
     recovery_rate = recovered / total
 
-    # Guardar Reporte Final con nombres exactos de la rúbrica 
     with open(SUMMARY_REPORT, 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(['Metrica', 'Valor'])
