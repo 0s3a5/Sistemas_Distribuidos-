@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 @app.before_request
 def simular_fallos():
-    if random.random() < 0.3:
+    if random.random() < 0.0:
         return jsonify({"error": "Simulación de caída: Servicio saturado (Fail Rate 0.3)"}), 503
 ZONAS_BBOX = {
     "Z1": {"name": "Providencia", "area_km2": 4.5},
