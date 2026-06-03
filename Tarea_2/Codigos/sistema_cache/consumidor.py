@@ -15,7 +15,6 @@ producer = None
 
 print("[-] Iniciando fase de conexión del Consumidor con Kafka...")
 
-# Bucle de conexión resiliente
 while True:
     try:
         print("    Intentando conectar consumidor al Broker (kafka:29092)...")
@@ -56,10 +55,10 @@ for message in consumer:
         consulta['retry_count'] += 1
         
         if consulta['retry_count'] <= MAX_RETRIES:
-            print(f"    [REINTENTO] Reenviando a {TOPICO_REINTENTO} ({consulta['retry_count']}/{MAX_RETRIES})") [cite: 93]
+            print(f"    [REINTENTO] Reenviando a {TOPICO_REINTENTO} ({consulta['retry_count']}/{MAX_RETRIES})") 
             producer.send(TOPICO_REINTENTO, value=consulta)
         else:
-            print(f"    [DLQ] Excedió reintentos. Enviando a {TOPICO_DLQ}.") [cite: 59, 86]
+            print(f"    [DLQ] Excedió reintentos. Enviando a {TOPICO_DLQ}.") 
             try:
                 requests.post("http://localhost:5000/log_dlq", json=consulta)
             except:
