@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # Base de datos en memoria (Configuración base Tarea 1)
+  redis-service:
+    image: redis:latest
+    command: redis-server --maxmemory 200mb --maxmemory-policy allkeys-lru
+
+  # ORQUESTACIÓN ASÍNCRONA: Apache Kafka y Zookeeper
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  # Servicio de procesamiento de datos geoespaciales (Mantiene las 163k filas)
+  response-gen:
+    build: ./generador_respuestas
+    volumes:
+      - ./metricas:/app/data
+
+  # El intermediario que gestiona la lógica de caché (Redis)
+  sistema_cache:
+    build: ./sistema_cache
+    volumes:
+      - ./metricas:/app/data 
+    depends_on:
+      - redis-service
+
+  # NUEVO COMPONENTE: Consumidores de Kafka (Escalables)
+  # Este servicio leerá de Kafka e interactuará con la Caché y Response-Gen
+  kafka-consumer:
+    build: ./sistema_cache  # Reutiliza el entorno de la caché o una carpeta nueva
+    volumes:
+      - ./metricas:/app/data
+    depends_on:
+      - kafka
+      - sistema_cache
+      - response-gen
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - PYTHONUNBUFFERED=1
+  # El simulador de tráfico: Ahora actúa como KAFKA PRODUCER
+  traffic-gen:
+    build: ./generador_trafico
+    depends_on:
+      - kafka
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - PYTHONUNBUFFERED=1

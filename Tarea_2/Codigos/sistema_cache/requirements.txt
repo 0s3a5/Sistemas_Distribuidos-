@@ -1,0 +1,5 @@
+flask
+redis
+requests
+numpy
+kafka-python
